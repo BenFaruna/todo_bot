@@ -1,0 +1,1 @@
+# inventorymanaget_bot
