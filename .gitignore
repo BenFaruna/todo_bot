@@ -127,3 +127,9 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# Bot ignored files
+token.txt
+python-telegram-bot-readthedocs-io-en-stable.pdf
+
+.idea/
