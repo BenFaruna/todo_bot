@@ -24,9 +24,17 @@ def echo(update, context):
 
 
 def bop(update, context):
-    contents = requests.get('https://random.dog/woof.json').json()
-    img_url = contents['url']
-    context.bot.send_photo(chat_id=update.effective_chat.id, photo=img_url)
+    allowed_extension = ['jpeg', 'jpg', 'png', 'gif']
+    file_extension = ''
+    while file_extension not in allowed_extension:
+        contents = requests.get('https://random.dog/woof.json').json()
+        url = contents['url']
+        file_extension = re.search(r'([^.]*)$', url).group(1).lower()
+
+    if file_extension == 'gif':
+        context.bot.send_animation(chat_id=update.effective_chat.id, animation=url)
+    else:
+        context.bot.send_photo(chat_id=update.effective_chat.id, photo=url)
 
 
 start_handler = CommandHandler('start', start)
