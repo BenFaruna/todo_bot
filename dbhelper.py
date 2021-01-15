@@ -25,18 +25,19 @@ class DBHelper:
         self.conn.commit()
 
     def delete_item(self, user_id, item_text):
-        stmt = "DELETE FROM Todo WHERE (user_id, description) = (?, ?)"
-        args = (user_id, item_text, )
+        stmt = "DELETE FROM Todo WHERE (id, description) = (?, ?)"
+        args = (user_id, item_text)
         self.conn.execute(stmt, args)
         self.conn.commit()
 
     def get_items(self, user_id):
         args = (user_id,)
         stmt = "SELECT description, deadline FROM Todo WHERE id=(?)"
-        return [todo for todo in self.conn.execute(stmt, args)]
+        items = self.conn.execute(stmt, args)
+        return [todo for todo in items]
 
     def update_item(self, user_id, item_text, new_text):
-        stmt = "UPDATE Todo SET description=(?), deadline=30 WHERE user_id, description=(?, ?)"
+        stmt = "UPDATE Todo SET description=(?), deadline=30 WHERE id, description=(?, ?)"
         args = (new_text, user_id, item_text)
         self.conn.execute(stmt, args)
         self.conn.commit()
