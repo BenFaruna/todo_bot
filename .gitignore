@@ -133,3 +133,6 @@ token.txt
 python-telegram-bot-readthedocs-io-en-stable.pdf
 
 .idea/
+/todo.txt
+/learn_bot.py
+/help.sqlite
