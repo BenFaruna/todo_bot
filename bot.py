@@ -25,7 +25,7 @@ CHOOSING, TYPING_REPLY, DATE_REPLY, ACTION, VIEW = range(5)
 def start(update, context):
     context.bot.send_message(chat_id=update.effective_chat.id,
                              text="Hi, I'm your favourite personal assistant here to assist you with keeping "
-                                  "your tasks together and keeping you up to date.")
+                                  "your tasks together and keeping you up to date😉.")
 
 
 todo_item = dict()
@@ -58,9 +58,13 @@ def add_todo(update, context: CallbackContext):
 def view_todo(update, context):
     # Todo: View all user tasks in the database
     items = db.get_items(update.effective_chat.id)
+
+    if not items:
+        return ConversationHandler.END
+
     kb, task, count = [], [], 0
     for item in items:
-        task.append(telegram.KeyboardButton(item[0]))
+        task.append(telegram.KeyboardButton(item[1]))
 
         if count < 1:
             count += 1
@@ -68,8 +72,8 @@ def view_todo(update, context):
             kb.append(task)
             task, count = [], 0
 
-        if item == items[-1]:
-            kb.append([telegram.KeyboardButton(item[0])])
+        if item == items[-1] and count % 2 != 0:
+            kb.append([telegram.KeyboardButton(item[1])])
 
     kb_markup = telegram.ReplyKeyboardMarkup(kb, one_time_keyboard=True)
 
@@ -77,10 +81,6 @@ def view_todo(update, context):
     These are the tasks you have lined up, you can delete or update by selecting from the list.
 """, reply_markup=kb_markup)
     return CHOOSING
-
-
-def update_todo(update, context):
-    pass
 
 
 def delete_todo(update, context: CallbackContext):
@@ -95,6 +95,19 @@ Pick an action(/add, /view, /delete, /update) or send /cancel to quit todo funct
     return CHOOSING
 
 
+def update_todo(update, context: CallbackContext):
+    # Todo: updates items in a todo list
+    chat_id = update.effective_chat.id
+    todo_item["old_task"] = todo_item["task"]
+    tasks = db.get_items(chat_id)
+    for task in tasks:
+        if task[1] == todo_item["old_task"]:
+            todo_item["id"] = task[0]
+    update.message.reply_text("Enter new task detail for {}".format(todo_item["old_task"].upper()))
+
+    return DATE_REPLY
+
+
 def date_calendar(update, context):
     todo_item["task"] = update.message.text
     context.bot.send_message(chat_id=update.effective_chat.id,
@@ -102,7 +115,7 @@ def date_calendar(update, context):
     return ACTION
 
 
-def add_update(update, context):
+def add_update(update, context:CallbackContext):
     chat_id = update.effective_chat.id
     task = todo_item["task"]
     try:
@@ -114,13 +127,25 @@ def add_update(update, context):
 
     deadline = todo_item["deadline"]
 
-    db.add_item(chat_id, task, deadline)
-    del (todo_item["task"])
-    del (todo_item["deadline"])
-    update.message.reply_text("""
-    Task successfully added.
-Send /organizer to perform other tasks on your todo list.""")
-    return ConversationHandler.END
+    if "old_task" in todo_item:
+        db.update_item(todo_item["id"], task, deadline)
+        update.message.reply_text("""
+                Task successfully updated from {} to {}.
+        Send /organizer to perform other tasks on your todo list.
+            """.format(todo_item["old_task"].upper(), todo_item['task'].upper()))
+        del (todo_item["task"])
+        del(todo_item["old_task"])
+        del (todo_item["deadline"])
+        return ConversationHandler.END
+
+    else:
+        db.add_item(chat_id, task, deadline)
+        del (todo_item["task"])
+        del (todo_item["deadline"])
+        update.message.reply_text("""
+        Task successfully added.
+    Send /organizer to perform other tasks on your todo list.""")
+        return ConversationHandler.END
 
 
 def action(update, context):
@@ -166,17 +191,18 @@ def main():
 
             ],
             TYPING_REPLY: [
-                MessageHandler(Filters.text & ~(Filters.command | Filters.regex('^Done$')), add_todo)
+                MessageHandler(Filters.text & ~(Filters.command | Filters.regex('^[Dd]one$')), add_todo)
             ],
             DATE_REPLY: [
-                MessageHandler(Filters.text & ~(Filters.command | Filters.regex('^Done$')), date_calendar)
+                MessageHandler(Filters.text & ~(Filters.command | Filters.regex('^[Dd]one$')), date_calendar)
             ],
             ACTION: [
-                MessageHandler(Filters.text & ~(Filters.command | Filters.regex('^Done$')), add_update),
+                MessageHandler(Filters.text & ~(Filters.command | Filters.regex('^[Dd]one$')), add_update),
+                CommandHandler("update", update_todo),
                 CommandHandler("delete", delete_todo)
             ],
         },
-        fallbacks=[MessageHandler(Filters.regex("^Done$"), done),
+        fallbacks=[MessageHandler(Filters.regex("^[Dd]one$"), done),
                    CommandHandler("cancel", done)],
     )
 
