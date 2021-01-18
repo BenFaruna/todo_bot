@@ -1,7 +1,6 @@
-# Inventorymanager_bot
+# Todo_bot
 
-A telegram bot meant to take care of your inventory and also deal with tasks and deadlines.
-Payment wasn't part of the plan for this bot, but with use and request it could be added.
+A telegram bot meant to deal with tasks and deadlines.
 Bot will use sqlite3 for database and will be hosted on heroku.
 
 I hope this solves someone's problem.
