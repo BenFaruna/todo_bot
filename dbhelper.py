@@ -40,11 +40,3 @@ class DBHelper:
         args = (new_text, new_deadline, text_id)
         self.conn.execute(stmt, args)
         self.conn.commit()
-
-    # def delete_table(self):
-    #     stmt = "DROP TABLE Todo"
-    #     try:
-    #         self.conn.execute(stmt)
-    #         self.conn.commit()
-    #     except sqlite3.OperationalError as e:
-    #         return e
