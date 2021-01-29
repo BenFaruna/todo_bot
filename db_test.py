@@ -1,3 +1,4 @@
+from datetime import datetime
 from dbhelper import DBHelper
 
 
@@ -7,11 +8,16 @@ db.setup()
 # db.add_item("Wash some clothes.")
 # db.add_item("Code some more.")
 # db.add_item("Go to their Bernice house.")
+# a = db.get_specific_date(1605826800)
+# print(db.get_specific_date(1605826800))
+#
+# print(len(db.get_specific_date(1605826800)))
+#
+# print(datetime.utcfromtimestamp(a[1][2]).strftime("%d/%m/%Y"))
 
-print(db.get_items(656785956)[:4])
-
-db.update_item(656785956, "Read some telegram stuff", 12434567, "Read some django stuff")
-
-print(db.get_items(656785956))
+current_timestamp = datetime.now().replace(hour=0, minute=0, second=0).timestamp()
+due_tasks = db.get_specific_date(current_timestamp)
+print(due_tasks)
+print(current_timestamp)
 
 # db.delete_table()

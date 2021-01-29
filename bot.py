@@ -41,7 +41,7 @@ def organizer(update, context):
 
     kb_markup = telegram.ReplyKeyboardMarkup(kb, one_time_keyboard=True, resize_keyboard=True)
     update.message.reply_text('Hi, thanks for contacting me today, what can I do for you?\n'
-                              'Send Done or /cancel at any point to carry out a new task or end Todo function.',
+                              'Send /cancel or "Done" at any point to carry out a new task or end Todo function.',
                               reply_markup=kb_markup)
     return CHOOSING
 
@@ -78,7 +78,7 @@ def view_todo(update, context):
 
     context.bot.send_message(chat_id=update.effective_chat.id, text="""
     These are the tasks you have lined up, you can delete or update by selecting from the list.
-Send Done or /cancel at any point to carry out a new task or end Todo function.
+Send /cancel or "Done" at any point to carry out a new task or end Todo function.
 """, reply_markup=kb_markup)
     return CHOOSING
 
@@ -90,7 +90,7 @@ def delete_todo(update, context):
     db.delete_item(chat_id, task)
     del (todo_item["task"])
     update.message.reply_text("""Task has been successfully deleted.
-Pick an action(/add, /view) or send /cancel to quit todo functionality
+Pick an action(/add, /view) or send "Done" to quit todo functionality
 """)
     return CHOOSING
 
@@ -170,21 +170,34 @@ def action(update, context):
     todo_item["task"] = update.message.text
     update.message.reply_text(
         "Pick an action you want to carry out /update or /delete on {}."
-        "send /cancel to end operation.".format((todo_item["task"]).upper()))
+        "send Done to end operation.".format((todo_item["task"]).upper()))
     return ACTION
 
 
 def done(update, context):
-    if re.search('^[Dd]one$', update.message.text):
+    if update.message.text == "/cancel":
         update.message.reply_text("""
     What else would you like to do /add, /view.
-/cancel if you're done using the todo function for now.
+Send "Done" if you're done using the todo function for now.
     """)
         return CHOOSING
-    elif update.message.text == "/cancel":
+    elif re.search('^[Dd]one$', update.message.text):
         update.message.reply_text(
             "Don't forget to come back when you need me. Send /organizer to get me running again.")
         return ConversationHandler.END
+
+
+def alert_user():
+    # Todo: add alert functionality to bot
+    bot = telegram.Bot(token=TOKEN)
+
+    current_timestamp = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0).timestamp()
+    due_tasks = db.get_specific_date(current_timestamp)
+    for task in due_tasks:
+        date = datetime.fromtimestamp(task[2]).strftime("%d/%m/%Y")
+        bot.sendMessage(chat_id=task[0],
+                        text=f"{task[1].upper()} that you have fixed for {date} is here.\n"
+                        "Do something about it.")
 
 
 def unknown(update, context):
@@ -195,6 +208,8 @@ def main():
     db.setup()
     updater = Updater(token=TOKEN, use_context=True)
     dispatcher = updater.dispatcher
+
+    alert_user()
 
     start_handler = CommandHandler('start', start)
 
@@ -225,6 +240,8 @@ def main():
                    CommandHandler("cancel", done)],
     )
 
+    # alert_handler = MessageHandler(Filters.text | Filters.command, alert_user)
+
     unknown_handler = MessageHandler(Filters.command, unknown)
 
     dispatcher.add_handler(start_handler)
@@ -232,6 +249,8 @@ def main():
     dispatcher.add_handler(organizer_handler)
 
     dispatcher.add_handler(unknown_handler)
+
+    # dispatcher.add_handler(alert_handler)
 
     updater.start_polling()
 

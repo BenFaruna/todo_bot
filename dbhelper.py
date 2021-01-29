@@ -40,3 +40,9 @@ class DBHelper:
         args = (new_text, new_deadline, text_id)
         self.conn.execute(stmt, args)
         self.conn.commit()
+
+    def get_specific_date(self, date):
+        stmt = "SELECT user_id, description, deadline FROM Todo WHERE deadline>=(?)"
+        args = (date,)
+        deadline_reached = self.conn.execute(stmt, args)
+        return [tasks for tasks in deadline_reached]
