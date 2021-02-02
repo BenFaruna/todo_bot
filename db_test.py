@@ -15,9 +15,11 @@ db.setup()
 #
 # print(datetime.utcfromtimestamp(a[1][2]).strftime("%d/%m/%Y"))
 
-current_timestamp = datetime.now().replace(hour=0, minute=0, second=0).timestamp()
-due_tasks = db.get_specific_date(current_timestamp)
-print(due_tasks)
-print(current_timestamp)
+# current_timestamp = datetime.now().replace(hour=0, minute=0, second=0).timestamp()
+# due_tasks = db.get_specific_date(current_timestamp)
+# print(due_tasks)
+# print(current_timestamp)
+
+db.get_sent_list(1)
 
 # db.delete_table()

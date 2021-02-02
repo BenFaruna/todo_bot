@@ -157,6 +157,7 @@ Send /organizer to perform other tasks on your todo list.
         except KeyError:
             logging.info(f"Task {todo_item['old_task']} not in database.")
             db.add_item(chat_id, task, deadline)
+            update.message.reply_text("Task not in database but added. Send /organizer to start todo function again.")
             return ConversationHandler.END
 
     else:
@@ -173,7 +174,7 @@ def action(update, context):
     todo_item["task"] = update.message.text
     update.message.reply_text(
         "Pick an action you want to carry out /update or /delete on {}."
-        "send Done to end operation.".format((todo_item["task"]).upper()))
+        "Send Done to end operation.".format((todo_item["task"]).upper()))
     return ACTION
 
 
@@ -197,14 +198,16 @@ def alert_user():
     current_timestamp = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0).timestamp()
     due_tasks = db.get_specific_date(current_timestamp)
     for task in due_tasks:
-        date = datetime.fromtimestamp(task[2]).strftime("%d/%m/%Y")
-        bot.sendMessage(chat_id=task[0],
-                        text=f"{task[1].upper()} that you have fixed for {date} is here.\n"
-                        "Do something about it.")
+        if not db.get_sent_list(task[3]):
+            date = datetime.fromtimestamp(task[2]).strftime("%d/%m/%Y")
+            bot.sendMessage(chat_id=task[0],
+                            text=f"{task[1].upper()} that you have fixed for {date} is here.\n"
+                            "Do something about it.")
+            db.add_todo_id(task[3])
 
 
 def unknown(update, context):
-    context.bot.send_message(chat_id=update.effective_chat.id, text="Sorry, I didn't understand that command.")
+    context.bot.send_message(chat_id=update.effective_chat.id, text="Sorry, I did not understand that command.")
 
 
 def main():
