@@ -25,7 +25,6 @@ def start(update, context):
     context.bot.send_message(chat_id=update.effective_chat.id,
                              text="Hi, I'm your favourite personal assistant here to assist you with keeping "
                                   "your tasks together and keeping you up to date😉.")
-    alert_user()
 
 
 todo_item = dict()
@@ -44,7 +43,6 @@ def organizer(update, context):
     update.message.reply_text('Hi, thanks for contacting me today, what can I do for you?\n'
                               'Send /cancel or "Done" at any point to carry out a new task or end Todo function.',
                               reply_markup=kb_markup)
-    alert_user()
 
     return CHOOSING
 
@@ -214,8 +212,6 @@ def main():
     db.setup()
     updater = Updater(token=TOKEN, use_context=True)
     dispatcher = updater.dispatcher
-
-    alert_user()
 
     start_handler = CommandHandler('start', start)
 
