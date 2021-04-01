@@ -20,14 +20,13 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
 
 CHOOSING, TYPING_REPLY, DATE_REPLY, ACTION, VIEW = range(5)
 
+todo_item = dict()
+
 
 def start(update, context):
     context.bot.send_message(chat_id=update.effective_chat.id,
                              text="Hi, I'm your favourite personal assistant here to assist you with keeping "
                                   "your tasks together and keeping you up to date😉.")
-
-
-todo_item = dict()
 
 
 def organizer(update, context):
@@ -135,8 +134,10 @@ def add_update(update, context):
                                   "e.g. 12/06/2021.\n"
                                   f"Error: {e.__str__()}")
         return ACTION
+
     except IndexError:
         update.message.reply_text("Enter your date in the correct format day/month/year/ e.g. 12/06/2021.")
+
         return ACTION
 
     deadline = todo_item["deadline"]
@@ -151,11 +152,14 @@ Send /organizer to perform other tasks on your todo list.
             del (todo_item["task"])
             del(todo_item["old_task"])
             del (todo_item["deadline"])
+
             return ConversationHandler.END
+
         except KeyError:
             logging.info(f"Task {todo_item['old_task']} not in database.")
             db.add_item(chat_id, task, deadline)
             update.message.reply_text("Task not in database but added. Send /organizer to start todo function again.")
+
             return ConversationHandler.END
 
     else:
@@ -165,6 +169,7 @@ Send /organizer to perform other tasks on your todo list.
         update.message.reply_text("""
         Task successfully added.
 Send /organizer to perform other tasks on your todo list.""")
+
         return ConversationHandler.END
 
 
@@ -173,6 +178,7 @@ def action(update, context):
     update.message.reply_text(
         "Pick an action you want to carry out /update or /delete on {}."
         "Send Done to end operation.".format((todo_item["task"]).upper()))
+
     return ACTION
 
 
@@ -182,10 +188,13 @@ def done(update, context):
     What else would you like to do /add, /view.
 Send "Done" if you're done using the todo function for now.
     """)
+
         return CHOOSING
+
     elif re.search('^[Dd]one$', update.message.text):
         update.message.reply_text(
             "Don't forget to come back when you need me. Send /organizer to get me running again.")
+
         return ConversationHandler.END
 
 
@@ -195,6 +204,7 @@ def alert_user():
 
     current_timestamp = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0).timestamp()
     due_tasks = db.get_specific_date(current_timestamp)
+
     for task in due_tasks:
         if not db.get_sent_list(task[3]):
             date = datetime.fromtimestamp(task[2]).strftime("%d/%m/%Y")
